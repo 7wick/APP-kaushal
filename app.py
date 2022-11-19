@@ -28,16 +28,10 @@ api = Api(app)  # Creating a REST API for the app
 # http://localhost:5000/rider/rider_id
 # http://localhost:5000/rider/rider_id?arg=value
 api.add_resource(Course,
-                 '/course',
-                 '/course/<string:course_id>')
+                 '/course', '/course/',
+                 '/course/<string:course_id>', '/course/<string:course_id>/')
 
-api.add_resource(Courses, '/courses')
-
-# @app.route('/')
-# def hello_world():
-#     raise jwt_exception.ExpiredSignatureError
-#     # return make_response(jsonify(api='rideshare', version='0.0.1', date='2021-11-08'), 200)
-
+api.add_resource(Courses, '/courses', '/courses/')
 
 if __name__ == "__main__":
     app.run()  # Runs web app @ http://localhost:5000 by default for me.

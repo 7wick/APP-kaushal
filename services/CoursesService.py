@@ -3,9 +3,10 @@ from mongoengine import *
 
 
 def create_course(title, course_id, watch_hours, level, email, views, watches, ratings):
-    new_user = Course(title=title, ID=course_id, watch_hours=watch_hours, level=level, email=email, views=views,
-                      watches=watches, ratings=ratings)
-    new_user.save()
+    new_course = Course(title=title, ID=course_id, watch_hours=watch_hours, level=level, email=email, views=views,
+                        watches=watches, ratings=ratings)
+    new_course.save()
+    return new_course
 
 
 def all_courses():
@@ -18,6 +19,13 @@ def find_course_by_ID(course_id):
 
 def delete_course_by_ID(course_id):
     return Course.objects.filter(ID=course_id).delete()
+
+
+def update_rider(course_id, title, watch_hours, level):
+    course = Course.objects(ID=course_id).first()
+    course.update(title=title, watch_hours=watch_hours, level=level)
+    course.reload()  # Get the latest copy from the db
+    return course  # Return the list of one rider object that was updated
 
 
 def reset_courses(database_name):  # Initialize the db with default courses
