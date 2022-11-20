@@ -5,18 +5,18 @@ from services.CoursesService import *
 import sys
 
 post_parser = reqparse.RequestParser()
-post_parser.add_argument('title', type=str)
-post_parser.add_argument('watch_hours', type=int)
-post_parser.add_argument('level', type=str)
-post_parser.add_argument('email', type=str)
-post_parser.add_argument('views', type=int)
-post_parser.add_argument('watches', type=int)
-post_parser.add_argument('ratings', type=int)
+post_parser.add_argument('title', type=str, required=True, location='args')
+post_parser.add_argument('watch_hours', type=int, required=True, location='args')
+post_parser.add_argument('level', type=str, required=True, location='args')
+post_parser.add_argument('email', type=str, required=True, location='args')
+post_parser.add_argument('views', type=int, location='args')
+post_parser.add_argument('watches', type=int, location='args')
+post_parser.add_argument('ratings', type=int, location='args')
 
 patch_parser = reqparse.RequestParser()
-patch_parser.add_argument('title', type=str)
-patch_parser.add_argument('watch_hours', type=int)
-patch_parser.add_argument('level', type=str)
+patch_parser.add_argument('title', type=str, location='form')
+patch_parser.add_argument('watch_hours', type=int, location='form')
+patch_parser.add_argument('level', type=str, location='form')
 
 headers = {'Content-Type': 'application/json'}
 
@@ -55,7 +55,7 @@ class Course(Resource):
         course_id = sys.maxsize  # setting max integer as default course_if
         try:
             args = post_parser.parse_args()
-        except Exception as e:
+        except Exception:
             return make_response(jsonify(message="Missing parameters!"), 401)
         generated_flag = True
         while generated_flag:
@@ -69,6 +69,8 @@ class Course(Resource):
     def patch(self, course_id):
         try:
             args = patch_parser.parse_args()
+            if all(value is None for value in args.values()):
+                return make_response(jsonify(message="Nothing to update"), 200)
             if find_course_by_ID(course_id):
                 course = update_rider(course_id, args.title, args.watch_hours, args.level)
                 return make_response(course.to_json(), 200, headers)

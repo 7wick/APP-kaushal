@@ -23,9 +23,14 @@ def delete_course_by_ID(course_id):
 
 def update_rider(course_id, title, watch_hours, level):
     course = Course.objects(ID=course_id).first()
-    course.update(title=title, watch_hours=watch_hours, level=level)
-    course.reload()  # Get the latest copy from the db
-    return course  # Return the list of one rider object that was updated
+    if title is not None:
+        course.title = title
+    if watch_hours is not None:
+        course.watch_hours = watch_hours
+    if level is not None:
+        course.level = level
+    course.save()
+    return course
 
 
 def initialize_courses(database_name):  # Initialize the db with default courses
