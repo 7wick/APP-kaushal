@@ -1,7 +1,8 @@
 from random import randrange
-from flask import abort, make_response, jsonify
+from flask import make_response, jsonify
 from flask_restful import reqparse, Resource
 from services.CoursesService import *
+import sys
 
 post_parser = reqparse.RequestParser()
 post_parser.add_argument('title', type=str)
@@ -26,19 +27,19 @@ class Courses(Resource):
             courses = all_courses()
             return make_response(courses.to_json(), 200, headers)
         except:
-            return abort(403, "Database Empty!")
+            return make_response(jsonify(message="Database Empty!"), 404)
 
 
 class Course(Resource):
     def get(self, course_id=None):
         try:
-            if find_course_by_ID(course_id):
+            if find_course_by_ID(course_id) is not None:
                 course = find_course_by_ID(course_id)
                 return make_response(course.to_json(), 200, headers)
             else:
-                return abort(404, "Invalid course ID")
-        except:
-            return make_response(jsonify(message="Incorrect URI"), 404)
+                return make_response(jsonify(message="Invalid course ID"), 404)
+        except Exception as e:
+            return make_response(jsonify(message="Incorrect URI"), 401)
 
     def delete(self, course_id=None):
         try:
@@ -46,16 +47,16 @@ class Course(Resource):
                 delete_course_by_ID(course_id)
                 return make_response(jsonify(message="Record deleted successfully!"), 200)
             else:
-                return abort(404, "Invalid course ID")
+                return make_response(jsonify(message="Invalid course ID!"), 404)
         except:
-            return make_response(jsonify(message="Incorrect URI"), 404)
+            return make_response(jsonify(message="Incorrect URI"), 401)
 
     def post(self):
-        course_id = 999999
+        course_id = sys.maxsize  # setting max integer as default course_if
         try:
             args = post_parser.parse_args()
         except Exception as e:
-            return abort(400, "Missing parameters!")
+            return make_response(jsonify(message="Missing parameters!"), 401)
         generated_flag = True
         while generated_flag:
             course_id = randrange(100000, 999999)
@@ -72,6 +73,6 @@ class Course(Resource):
                 course = update_rider(course_id, args.title, args.watch_hours, args.level)
                 return make_response(course.to_json(), 200, headers)
             else:
-                return abort(404, "Invalid course ID")
+                return make_response(jsonify(message="Invalid course ID"), 404)
         except:
-            return make_response(jsonify(message="Incorrect URI"), 404)
+            return make_response(jsonify(message="Incorrect URI"), 401)

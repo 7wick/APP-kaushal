@@ -28,7 +28,7 @@ def update_rider(course_id, title, watch_hours, level):
     return course  # Return the list of one rider object that was updated
 
 
-def reset_courses(database_name):  # Initialize the db with default courses
+def initialize_courses(database_name):  # Initialize the db with default courses
     disconnect()  # disconnect any existing connection
     database_connection = connect(database_name)
     database_connection.drop_database(database_name)  # erases all existing data

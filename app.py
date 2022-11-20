@@ -28,10 +28,10 @@ api = Api(app)  # Creating a REST API for the app
 # http://localhost:5000/rider/rider_id
 # http://localhost:5000/rider/rider_id?arg=value
 api.add_resource(Course,
-                 '/course', '/course/',
-                 '/course/<string:course_id>', '/course/<string:course_id>/')
+                 '/course/',
+                 '/course/<string:course_id>/')
 
-api.add_resource(Courses, '/courses', '/courses/')
+api.add_resource(Courses, '/courses/')
 
 if __name__ == "__main__":
     app.run()  # Runs web app @ http://localhost:5000 by default for me.
