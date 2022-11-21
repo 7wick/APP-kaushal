@@ -18,17 +18,34 @@ patch_parser.add_argument('title', type=str, location='form')
 patch_parser.add_argument('watch_hours', type=int, location='form')
 patch_parser.add_argument('level', type=str, location='form')
 
+get_courses_parser = reqparse.RequestParser()
+get_courses_parser.add_argument('pagesize', type=int, location='args')
+get_courses_parser.add_argument('page', type=int, location='args')
+
 headers = {'Content-Type': 'application/json'}
 
 
 class Courses(Resource):
-    def get(self):
+    def get(self, pagesize=None, page=None):
         try:
+            args = get_courses_parser.parse_args()
             courses = all_courses()
+            if not all(value is None for value in args.values()):
+                if args.page is None:
+                    args.page = 1
+                if args.pagesize is None:
+                    args.pagesize = 5
+                start = (args.page - 1)*args.pagesize
+                end = args.page*args.pagesize
+                if start > end:
+                    return make_response(jsonify(message="pagination values incorrect!"), 401)
+                courses = courses[start:end]  # pagination
+                if not len(courses):
+                    return make_response(jsonify(message="No data for current pagination"), 404)
             return make_response(courses.to_json(), 200, headers)
-        except:
+        except Exception as e:
+            print(e)
             return make_response(jsonify(message="Database Empty!"), 404)
-
 
 class Course(Resource):
     def get(self, course_id=None):
@@ -69,7 +86,7 @@ class Course(Resource):
     def patch(self, course_id):
         try:
             args = patch_parser.parse_args()
-            if all(value is None for value in args.values()):
+            if all(value is None for value in args.values()):  # checks if all args are None
                 return make_response(jsonify(message="Nothing to update"), 200)
             if find_course_by_ID(course_id):
                 course = update_rider(course_id, args.title, args.watch_hours, args.level)
