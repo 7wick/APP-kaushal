@@ -43,8 +43,7 @@ class Courses(Resource):
                 if not len(courses):
                     return make_response(jsonify(message="No data for current pagination"), 404)
             return make_response(courses.to_json(), 200, headers)
-        except Exception as e:
-            print(e)
+        except Exception:
             return make_response(jsonify(message="Database Empty!"), 404)
 
 class Course(Resource):
@@ -55,7 +54,7 @@ class Course(Resource):
                 return make_response(course.to_json(), 200, headers)
             else:
                 return make_response(jsonify(message="Invalid course ID"), 404)
-        except Exception as e:
+        except Exception:
             return make_response(jsonify(message="Incorrect URI"), 401)
 
     def delete(self, course_id=None):
@@ -69,19 +68,23 @@ class Course(Resource):
             return make_response(jsonify(message="Incorrect URI"), 401)
 
     def post(self):
-        course_id = sys.maxsize  # setting max integer as default course_if
+        course_id = sys.maxsize  # setting max integer as default course_id
         try:
             args = post_parser.parse_args()
         except Exception:
             return make_response(jsonify(message="Missing parameters!"), 401)
         generated_flag = True
-        while generated_flag:
-            course_id = randrange(100000, 999999)
-            if find_course_by_ID(course_id) is None:
-                generated_flag = False
-        create_course(args.title, course_id, args.watch_hours, args.level, args.email, args.views, args.watches,
-                      args.ratings)
-        return make_response(jsonify(message="Record created successfully!"), 200)
+        try:
+            while generated_flag:
+                course_id = randrange(100000, 999999)
+                if find_course_by_ID(course_id) is None:
+                    generated_flag = False
+            print("1")
+            create_course(course_id, args.title, args.watch_hours, args.level, args.email, args.views, args.watches,
+                          args.ratings)
+            return make_response(jsonify(message="Record created successfully!"), 200)
+        except Exception as e:
+            print(e)
 
     def patch(self, course_id):
         try:
@@ -89,7 +92,7 @@ class Course(Resource):
             if all(value is None for value in args.values()):  # checks if all args are None
                 return make_response(jsonify(message="Nothing to update"), 200)
             if find_course_by_ID(course_id):
-                course = update_rider(course_id, args.title, args.watch_hours, args.level)
+                course = update_course(course_id, args.title, args.watch_hours, args.level)
                 return make_response(course.to_json(), 200, headers)
             else:
                 return make_response(jsonify(message="Invalid course ID"), 404)
