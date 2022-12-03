@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_jwt_extended import JWTManager
-from jwt import exceptions as jwt_exception
 from flask_restful import Api
 from database.db import initialize_db
 from utils.JSONEncoder import MongoEngineJSONEncoder
@@ -9,7 +8,7 @@ from resources.Learner import *
 import resources
 from resources.Instructor import *
 from resources.Bank import *
-# from resources.Sessions import *
+from resources.Session import *
 from resources.User import *
 
 app = Flask(__name__)  # Creating a FLASK app
@@ -51,14 +50,14 @@ app.config['MONGODB_SETTINGS'] = [
 jwt = JWTManager(app)
 app.json_encoder = MongoEngineJSONEncoder
 
-app.config['JWT_SECRET_KEY'] = 'do-not-breach-my-privacy'  # Change this!
-app.config['PROPAGATE_EXCEPTIONS'] = True
+app.config['JWT_SECRET_KEY'] = 'do-not-breach-my-privacy'
+# app.config['PROPAGATE_EXCEPTIONS'] = True
 
 initialize_db(app, course_db, learner_db, instructor_db, bank_db, user_db)  # create and initialize databases
 
 api = Api(app)  # Creating a REST API for the app
 
-# api.add_resource(Sessions, '/sessions/')
+api.add_resource(Session, '/session/')
 api.add_resource(Users, '/users/')
 api.add_resource(User, '/user/<string:user_email>/')
 
@@ -85,7 +84,7 @@ api.add_resource(Bank,
 
 @app.route('/')
 def hello_world():
-    raise jwt_exception.ExpiredSignatureError
+    return make_response(jsonify(message="Invalid URI"), 401)
 
 
 if __name__ == "__main__":
