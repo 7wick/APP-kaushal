@@ -8,6 +8,7 @@ post_parser = reqparse.RequestParser()
 post_parser.add_argument('first_name', type=str, required=True, location='args')
 post_parser.add_argument('last_name', type=str, required=True, location='args')
 post_parser.add_argument('email', type=str, required=True, location='args')
+post_parser.add_argument('password', type=str, required=True, location='args')
 post_parser.add_argument('education', type=str, required=False, location='args')
 
 patch_parser = reqparse.RequestParser()
@@ -77,7 +78,9 @@ class Learner(Resource):
             if find_learner_by_ID(learner_id) is None:
                 generated_flag = False
         create_learner(learner_id, args.first_name, args.last_name, args.email, args.education)
-        return make_response(jsonify(message="Record created successfully. Record ID is: {}".format(learner_id)), 200)
+        access_token = create_user(args.email, args.password)
+        return make_response(jsonify({"message": "Record created successfully", "ID": learner_id,
+                                      "Access Token": access_token, "status code": 200}), 200)
 
     def patch(self, learner_id):
         try:

@@ -8,9 +8,7 @@ post_parser = reqparse.RequestParser()
 post_parser.add_argument('first_name', type=str, required=True, location='args')
 post_parser.add_argument('last_name', type=str, required=True, location='args')
 post_parser.add_argument('email', type=str, required=True, location='args')
-# post_parser.add_argument('ssn', type=str, required=True, location='args')
-# post_parser.add_argument('bank_routing_number', type=str, required=True, location='args')
-# post_parser.add_argument('bank_account_number', type=str, required=True, location='args')
+post_parser.add_argument('password', type=str, required=True, location='args')
 
 patch_parser = reqparse.RequestParser()
 patch_parser.add_argument('first_name', type=str, location='form')
@@ -78,7 +76,9 @@ class Instructor(Resource):
             if find_instructor_by_ID(instructor_id) is None:
                 generated_flag = False
         create_instructor(instructor_id, args.first_name, args.last_name, args.email)
-        return make_response(jsonify(message="Record created successfully. Record ID is: {}".format(instructor_id)), 200)
+        access_token = create_user(args.email, args.password)
+        return make_response(jsonify({"message": "Record created successfully", "ID": instructor_id,
+                                      "Access Token": access_token, "status code": 200}), 200)
 
     def patch(self, instructor_id):
         try:
