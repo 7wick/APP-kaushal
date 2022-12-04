@@ -63,22 +63,22 @@ api.add_resource(User, '/user/<string:user_email>/')
 api.add_resource(Courses, '/courses/')
 api.add_resource(Course,
                  '/course/',
-                 '/course/<string:course_id>/')
+                 '/course/<int:course_id>/')
 
 api.add_resource(Learners, '/learners/')
 api.add_resource(resources.Learner.Learner,
                  '/learner/',
-                 '/learner/<string:learner_id>/')
+                 '/learner/<int:learner_id>/')
 
 api.add_resource(Instructors, '/instructors/')
-api.add_resource(Instructor,
+api.add_resource(resources.Instructor.Instructor,
                  '/instructor/',
-                 '/instructor/<string:instructor_id>/')
+                 '/instructor/<int:instructor_id>/')
 
 api.add_resource(Banks, '/bank_accounts/')
 api.add_resource(Bank,
-                 '/instructor/<string:instructor_id>/bank_account/',
-                 '/instructor/<string:instructor_id>/bank_account/<string:bank_account_id>/')
+                 '/instructor/<int:instructor_id>/bank_account/',
+                 '/instructor/<int:instructor_id>/bank_account/<int:bank_account_id>/')
 
 
 @app.route('/')

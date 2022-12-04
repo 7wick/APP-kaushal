@@ -1,6 +1,8 @@
-from flask import make_response, jsonify
+from flask import make_response, jsonify, request
+from flask_jwt_extended import jwt_required
 from flask_restful import reqparse, Resource
 from services.BanksService import *
+from services.InstructorsService import *
 from services.UsersService import generate_id
 
 post_parser = reqparse.RequestParser()
@@ -42,31 +44,45 @@ class Banks(Resource):
 
 
 class Bank(Resource):
+
+    def do_all_checks(self, instructor_id, account, token):
+        instructor = find_instructor_by_ID(instructor_id)
+        if instructor is None:
+            return make_response(jsonify(message="Invalid instructor ID"), 404)
+        if account is None:
+            return make_response(jsonify(message="Invalid bank account ID"), 404)
+        if instructor_id != account.instructor_id:
+            return make_response(jsonify(message="Bank account doesn't belongs to instructor"), 404)
+        if token != find_user_by_ID(instructor_id).access_token:
+            return make_response(jsonify(message="Invalid access token"), 401)
+        else:
+            return 1
+
+    @jwt_required()
     def get(self, instructor_id=None, bank_account_id=None):
         try:
-            if bank_account_id is None:
-                if find_bank_by_instructor(instructor_id) is not None:
-                    account = find_bank_by_instructor(instructor_id)
-                    return make_response(account.to_json(), 200, headers)
-                else:
-                    return make_response(jsonify(message="Invalid instructor ID"), 404)
+            account = find_bank_by_account(bank_account_id)
+            token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
+            response = self.do_all_checks(instructor_id, account, token)
+            if response == 1:
+                return make_response(account.to_json(), 200, headers)
             else:
-                if find_bank_by_account(bank_account_id) is not None:
-                    account = find_bank_by_account(bank_account_id)
-                    return make_response(account.to_json(), 200, headers)
-                else:
-                    return make_response(jsonify(message="Invalid account ID"), 404)
+                return response
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
 
+    @jwt_required()
     def delete(self, instructor_id=None, bank_account_id=None):
         try:
-            if find_bank_by_account(bank_account_id):
+            account = find_bank_by_account(bank_account_id)
+            token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
+            response = self.do_all_checks(instructor_id, account, token)
+            if response == 1:
                 delete_bank_by_account(bank_account_id)
                 return make_response(jsonify(message="Record deleted successfully!"), 200)
             else:
-                return make_response(jsonify(message="Invalid account ID!"), 404)
+                return response
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
@@ -89,20 +105,21 @@ class Bank(Resource):
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
 
+    @jwt_required()
     def patch(self, instructor_id=None, bank_account_id=None):
-        if find_bank_by_instructor(instructor_id) is None:
-            return make_response(jsonify(message="Instructor with {} id doesn't exists".format(instructor_id)), 401)
-        if find_bank_by_account(bank_account_id) is None:
-            return make_response(jsonify(message="Bank with {} id doesn't exists".format(bank_account_id)), 401)
         try:
-            args = patch_parser.parse_args()
-            if all(value is None for value in args.values()):  # checks if all args are None
-                return make_response(jsonify(message="Nothing to update"), 200)
-            if find_bank_by_account(bank_account_id):
-                account = update_account(bank_account_id, args.bank_routing_number, args.bank_account_number)
-                return make_response(account.to_json(), 200, headers)
+            account = find_bank_by_account(bank_account_id)
+            token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
+            response = self.do_all_checks(instructor_id, account, token)
+            if response != 1:
+                return response
             else:
-                return make_response(jsonify(message="Invalid account ID"), 404)
+                args = patch_parser.parse_args()
+                if all(value is None for value in args.values()):  # checks if all args are None
+                    return make_response(jsonify(message="Nothing to update"), 200)
+                if find_bank_by_account(bank_account_id):
+                    account = update_account(bank_account_id, args.bank_routing_number, args.bank_account_number)
+                    return make_response(account.to_json(), 200, headers)
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)

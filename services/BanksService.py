@@ -40,13 +40,13 @@ def initialize_bank_accounts(database_name):  # Initialize the db with default b
     database_connection = connect(database_name, alias='bank-alias')
     database_connection.drop_database(database_name)  # erases all existing data
 
-    Bank(instructor_id=121, bank_account_id=9121, ssn="ssn121", bank_routing_number="12345",
+    Bank(instructor_id=1005, bank_account_id=9125, ssn="ssn121", bank_routing_number="12345",
          bank_account_number="bofa123").save()
-    Bank(instructor_id=122, bank_account_id=9122, ssn="ssn122", bank_routing_number="86749",
+    Bank(instructor_id=1006, bank_account_id=9126, ssn="ssn122", bank_routing_number="86749",
          bank_account_number="chase959").save()
-    Bank(instructor_id=123, bank_account_id=9123, ssn="ssn123", bank_routing_number="12345",
+    Bank(instructor_id=1007, bank_account_id=9127, ssn="ssn123", bank_routing_number="12345",
          bank_account_number="wellsfargo453").save()
-    Bank(instructor_id=124, bank_account_id=9124, ssn="ssn124", bank_routing_number="86749",
+    Bank(instructor_id=1008, bank_account_id=9128, ssn="ssn124", bank_routing_number="86749",
          bank_account_number="pnc323").save()
 
     database_connection.close()
