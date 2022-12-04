@@ -1,8 +1,7 @@
-from random import randrange
 from flask import make_response, jsonify
 from flask_restful import reqparse, Resource
 from services.BanksService import *
-import sys
+from services.UsersService import generate_id
 
 post_parser = reqparse.RequestParser()
 post_parser.add_argument('ssn', type=str, required=True, location='args')
@@ -48,7 +47,6 @@ class Bank(Resource):
             if bank_account_id is None:
                 if find_bank_by_instructor(instructor_id) is not None:
                     account = find_bank_by_instructor(instructor_id)
-                    # print(account.bank_routing_number)
                     return make_response(account.to_json(), 200, headers)
                 else:
                     return make_response(jsonify(message="Invalid instructor ID"), 404)
@@ -58,9 +56,9 @@ class Bank(Resource):
                     return make_response(account.to_json(), 200, headers)
                 else:
                     return make_response(jsonify(message="Invalid account ID"), 404)
-
-        except Exception:
-            return make_response(jsonify(message="Incorrect URI"), 401)
+        except Exception as e:
+            print(e)
+            return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
 
     def delete(self, instructor_id=None, bank_account_id=None):
         try:
@@ -69,25 +67,27 @@ class Bank(Resource):
                 return make_response(jsonify(message="Record deleted successfully!"), 200)
             else:
                 return make_response(jsonify(message="Invalid account ID!"), 404)
-        except Exception:
-            return make_response(jsonify(message="Incorrect URI"), 401)
+        except Exception as e:
+            print(e)
+            return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
 
     def post(self, instructor_id=None):
-        bank_account_id = sys.maxsize  # setting max integer as default bank_account_id
         if find_bank_by_instructor(instructor_id) is None:
             return make_response(jsonify(message="Instructor with {} id doesn't exists".format(instructor_id)), 401)
         try:
             args = post_parser.parse_args()
-        except Exception:
+        except Exception as e:
+            print(e)
             return make_response(jsonify(message="Missing parameters!"), 401)
-        generated_flag = True
-        while generated_flag:
-            bank_account_id = randrange(1000, 9999)
-            if find_bank_by_account(bank_account_id) is None:
-                generated_flag = False
-        create_bank_account(bank_account_id, instructor_id, args.ssn, args.bank_routing_number,
-                            args.bank_account_number)
-        return make_response(jsonify(message="Record created successfully. Record ID is: {}".format(bank_account_id)), 200)
+        try:
+            bank_account_id = generate_id()
+            create_bank_account(bank_account_id, instructor_id, args.ssn, args.bank_routing_number,
+                                args.bank_account_number)
+            return make_response(jsonify(message="Record created successfully. Record ID is: {}".format(bank_account_id))
+                                 , 200)
+        except Exception as e:
+            print(e)
+            return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
 
     def patch(self, instructor_id=None, bank_account_id=None):
         if find_bank_by_instructor(instructor_id) is None:
@@ -103,5 +103,6 @@ class Bank(Resource):
                 return make_response(account.to_json(), 200, headers)
             else:
                 return make_response(jsonify(message="Invalid account ID"), 404)
-        except Exception:
-            return make_response(jsonify(message="Incorrect URI"), 401)
+        except Exception as e:
+            print(e)
+            return make_response(jsonify(message="Incorrect URI or Internal error"), 500)

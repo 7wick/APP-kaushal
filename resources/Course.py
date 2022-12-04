@@ -1,8 +1,7 @@
-from random import randrange
 from flask import make_response, jsonify
 from flask_restful import reqparse, Resource
 from services.CoursesService import *
-import sys
+from services.UsersService import generate_id
 
 post_parser = reqparse.RequestParser()
 post_parser.add_argument('title', type=str, required=True, location='args')
@@ -46,6 +45,7 @@ class Courses(Resource):
         except Exception:
             return make_response(jsonify(message="Database Empty!"), 404)
 
+
 class Course(Resource):
     def get(self, course_id=None):
         try:
@@ -54,8 +54,9 @@ class Course(Resource):
                 return make_response(course.to_json(), 200, headers)
             else:
                 return make_response(jsonify(message="Invalid course ID"), 404)
-        except Exception:
-            return make_response(jsonify(message="Incorrect URI"), 401)
+        except Exception as e:
+            print(e)
+            return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
 
     def delete(self, course_id=None):
         try:
@@ -64,27 +65,23 @@ class Course(Resource):
                 return make_response(jsonify(message="Record deleted successfully!"), 200)
             else:
                 return make_response(jsonify(message="Invalid course ID!"), 404)
-        except:
-            return make_response(jsonify(message="Incorrect URI"), 401)
+        except Exception as e:
+            print(e)
+            return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
 
     def post(self):
-        course_id = sys.maxsize  # setting max integer as default course_id
         try:
             args = post_parser.parse_args()
         except Exception:
             return make_response(jsonify(message="Missing parameters!"), 401)
-        generated_flag = True
         try:
-            while generated_flag:
-                course_id = randrange(100000, 999999)
-                if find_course_by_ID(course_id) is None:
-                    generated_flag = False
-            print("1")
+            course_id = generate_id()
             create_course(course_id, args.title, args.watch_hours, args.level, args.email, args.views, args.watches,
                           args.ratings)
             return make_response(jsonify(message="Record created successfully!"), 200)
         except Exception as e:
             print(e)
+            return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
 
     def patch(self, course_id):
         try:
@@ -96,5 +93,6 @@ class Course(Resource):
                 return make_response(course.to_json(), 200, headers)
             else:
                 return make_response(jsonify(message="Invalid course ID"), 404)
-        except:
-            return make_response(jsonify(message="Incorrect URI"), 401)
+        except Exception as e:
+            print(e)
+            return make_response(jsonify(message="Incorrect URI or Internal error"), 500)

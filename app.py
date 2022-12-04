@@ -51,7 +51,6 @@ jwt = JWTManager(app)
 app.json_encoder = MongoEngineJSONEncoder
 
 app.config['JWT_SECRET_KEY'] = 'do-not-breach-my-privacy'
-# app.config['PROPAGATE_EXCEPTIONS'] = True
 
 initialize_db(app, course_db, learner_db, instructor_db, bank_db, user_db)  # create and initialize databases
 

@@ -36,10 +36,10 @@ def initialize_instructors(database_name):  # Initialize the db with default ins
     database_connection = connect(database_name, alias='instructor-alias')
     database_connection.drop_database(database_name)  # erases all existing data
 
-    Instructor(instructor_id=121, first_name="Rahul", last_name="Kedia", email="instructor1@cmu.edu").save()
-    Instructor(instructor_id=122, first_name="Bhavya", last_name="Paliwal", email="instructor2@cmu.edu").save()
-    Instructor(instructor_id=123, first_name="Jake", last_name="Perry", email="instructor3@cmu.edu").save()
-    Instructor(instructor_id=124, first_name="Shiv", last_name="Nadar", email="instructor4@cmu.edu").save()
+    Instructor(instructor_id=1005, first_name="Rahul", last_name="Kedia", email="instructor1@cmu.edu").save()
+    Instructor(instructor_id=1006, first_name="Bhavya", last_name="Paliwal", email="instructor2@cmu.edu").save()
+    Instructor(instructor_id=1007, first_name="Jake", last_name="Perry", email="instructor3@cmu.edu").save()
+    Instructor(instructor_id=1008, first_name="Shiv", last_name="Nadar", email="instructor4@cmu.edu").save()
 
     database_connection.close()
     return "Data in {} instructor database has been reset".format(database_name)

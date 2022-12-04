@@ -1,8 +1,6 @@
-from random import randrange
 from flask import make_response, jsonify
 from flask_restful import reqparse, Resource
 from services.LearnersService import *
-import sys
 
 get_parser = reqparse.RequestParser()
 get_parser.add_argument('pagesize', type=int, location='args')
@@ -29,7 +27,8 @@ class Users(Resource):
                 if not len(users):
                     return make_response(jsonify(message="No data for current pagination"), 404)
             return make_response(users.to_json(), 200, headers)
-        except Exception:
+        except Exception as e:
+            print(e)
             return make_response(jsonify(message="Database Empty!"), 404)
 
 
@@ -40,19 +39,7 @@ class User(Resource):
                 user = find_user_by_email(user_email)
                 return make_response(user.to_json(), 200, headers)
             else:
-                return make_response(jsonify(message="Invalid user ID"), 404)
-        except:
-            return make_response(jsonify(message="Incorrect URI"), 401)
-
-    # def patch(self, user_email):
-    #     try:
-    #         args = patch_parser.parse_args()
-    #         if all(value is None for value in args.values()):  # checks if all args are None
-    #             return make_response(jsonify(message="Nothing to update"), 200)
-    #         if find_learner_by_ID(learner_id):
-    #             learner = update_learner(learner_id, args.first_name, args.last_name, args.education)
-    #             return make_response(learner.to_json(), 200, headers)
-    #         else:
-    #             return make_response(jsonify(message="Invalid learner ID"), 404)
-    #     except Exception:
-    #         return make_response(jsonify(message="Incorrect URI"), 401)
+                return make_response(jsonify(message="Invalid user email"), 404)
+        except Exception as e:
+            print(e)
+            return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
