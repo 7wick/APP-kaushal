@@ -45,18 +45,24 @@ class Instructors(Resource):
 
 
 class Instructor(Resource):
+    def do_all_checks(self, instructor, instructor_id, token):
+        if instructor is None:
+            return make_response(jsonify(message="Invalid instructor ID"), 404)
+        if token != find_user_by_ID(instructor_id).access_token:
+            return make_response(jsonify(message="Invalid access token"), 401)
+        else:
+            return 1
+
     @jwt_required()
     def get(self, instructor_id=None):
         try:
             instructor = find_instructor_by_ID(instructor_id)
-            if instructor is None:
-                return make_response(jsonify(message="Invalid instructor ID"), 404)
+            token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
+            response = self.do_all_checks(instructor, instructor_id, token)
+            if response == 1:
+                return make_response(instructor.to_json(), 200, headers)
             else:
-                token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
-                if token != find_user_by_ID(instructor_id).access_token:
-                    return make_response(jsonify(message="Invalid access token"), 401)
-                else:
-                    return make_response(instructor.to_json(), 200, headers)
+                return response
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
@@ -64,15 +70,14 @@ class Instructor(Resource):
     @jwt_required()
     def delete(self, instructor_id=None):
         try:
-            if find_instructor_by_ID(instructor_id) is None:
-                return make_response(jsonify(message="Invalid instructor ID"), 404)
+            instructor = find_instructor_by_ID(instructor_id)
+            token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
+            response = self.do_all_checks(instructor, instructor_id, token)
+            if response == 1:
+                delete_instructor_by_ID(instructor_id)
+                return make_response(jsonify(message="Record deleted successfully!"), 200)
             else:
-                token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
-                if token != find_user_by_ID(instructor_id).access_token:
-                    return make_response(jsonify(message="Invalid access token"), 401)
-                else:
-                    delete_instructor_by_ID(instructor_id)
-                    return make_response(jsonify(message="Record deleted successfully!"), 200)
+                return response
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
@@ -92,19 +97,18 @@ class Instructor(Resource):
     @jwt_required()
     def patch(self, instructor_id):
         try:
-            args = patch_parser.parse_args()
-            if find_instructor_by_ID(instructor_id) is None:
-                return make_response(jsonify(message="Invalid instructor ID"), 404)
-            else:
-                token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
-                if token != find_user_by_ID(instructor_id).access_token:
-                    return make_response(jsonify(message="Invalid access token"), 401)
+            instructor = find_instructor_by_ID(instructor_id)
+            token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
+            response = self.do_all_checks(instructor, instructor_id, token)
+            if response == 1:
+                args = patch_parser.parse_args()
+                if all(value is None for value in args.values()):  # checks if all args are None
+                    return make_response(jsonify(message="Nothing to update"), 200)
                 else:
-                    if all(value is None for value in args.values()):  # checks if all args are None
-                        return make_response(jsonify(message="Nothing to update"), 200)
-                    else:
-                        instructor = update_instructor(instructor_id, args.first_name, args.last_name)
-                        return make_response(instructor.to_json(), 200, headers)
+                    instructor = update_instructor(instructor_id, args.first_name, args.last_name)
+                    return make_response(instructor.to_json(), 200, headers)
+            else:
+                return response
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)

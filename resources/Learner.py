@@ -47,17 +47,23 @@ class Learners(Resource):
 
 
 class Learner(Resource):
+    def do_all_checks(self, learner, learner_id, token):
+        if learner is None:
+            return make_response(jsonify(message="Invalid learner ID"), 404)
+        if token != find_user_by_ID(learner_id).access_token:
+            return make_response(jsonify(message="Invalid access token"), 401)
+        else:
+            return 1
     @jwt_required()
     def get(self, learner_id=None):
         try:
             learner = find_learner_by_ID(learner_id)
             token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
-            if learner is None:
-                return make_response(jsonify(message="Invalid learner ID"), 404)
-            elif token != find_user_by_ID(learner_id).access_token:
-                return make_response(jsonify(message="Invalid access token"), 401)
-            else:
+            response = self.do_all_checks(learner, learner_id, token)
+            if response == 1:
                 return make_response(learner.to_json(), 200, headers)
+            else:
+                return response
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
@@ -65,14 +71,14 @@ class Learner(Resource):
     @jwt_required()
     def delete(self, learner_id=None):
         try:
+            learner = find_learner_by_ID(learner_id)
             token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
-            if find_learner_by_ID(learner_id) is None:
-                return make_response(jsonify(message="Invalid learner ID"), 404)
-            elif token != find_user_by_ID(learner_id).access_token:
-                return make_response(jsonify(message="Invalid access token"), 401)
-            else:
+            response = self.do_all_checks(learner, learner_id, token)
+            if response == 1:
                 delete_learner_by_ID(learner_id)
                 return make_response(jsonify(message="Record deleted successfully!"), 200)
+            else:
+                return response
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Incorrect URI or Internal error"), 500)
@@ -92,17 +98,18 @@ class Learner(Resource):
     @jwt_required()
     def patch(self, learner_id):
         try:
-            args = patch_parser.parse_args()
+            learner = find_learner_by_ID(learner_id)
             token = request.headers.get('Authorization').split()[1]  # Get Bearer Token
-            if find_learner_by_ID(learner_id) is None:
-                return make_response(jsonify(message="Invalid learner ID"), 404)
-            elif token != find_user_by_ID(learner_id).access_token:
-                return make_response(jsonify(message="Invalid access token"), 401)
-            elif all(value is None for value in args.values()):  # checks if all args are None
-                return make_response(jsonify(message="Nothing to update"), 200)
+            response = self.do_all_checks(learner, learner_id, token)
+            if response == 1:
+                args = patch_parser.parse_args()
+                if all(value is None for value in args.values()):  # checks if all args are None
+                    return make_response(jsonify(message="Nothing to update"), 200)
+                else:
+                    learner = update_learner(learner_id, args.first_name, args.last_name, args.education)
+                    return make_response(learner.to_json(), 200, headers)
             else:
-                learner = update_learner(learner_id, args.first_name, args.last_name, args.education)
-                return make_response(learner.to_json(), 200, headers)
+                return response
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
