@@ -24,3 +24,6 @@ class Session(Resource):
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
+
+    def delete(self):
+        return make_response(jsonify(message="OK"), 200)
