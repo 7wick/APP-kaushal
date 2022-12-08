@@ -58,7 +58,7 @@ class Course(Resource):
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
 
-    def delete(self, course_id=None):
+    def delete(self, instructor_id=None, course_id=None):
         try:
             if find_course_by_ID(course_id):
                 delete_course_by_ID(course_id)
@@ -78,7 +78,8 @@ class Course(Resource):
             course_id = generate_id()
             create_course(course_id, args.title, args.watch_hours, args.level, args.email, args.views, args.watches,
                           args.ratings)
-            return make_response(jsonify(message="Record created successfully!"), 200)
+            return make_response(jsonify({"message": "Record created successfully", "ID": course_id,
+                                          "status code": 200}), 200)
         except Exception as e:
             print(e)
             return make_response(jsonify(message="Incorrect URI or Internal error"), 500)
